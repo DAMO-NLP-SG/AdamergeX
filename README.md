@@ -12,7 +12,17 @@ As an effective alternative to the direct finetuning on target tasks in specific
 
 ## Data
 
-To construct the training data for the reference task, i.e., casual language modeling, you can run `construct_dataset_lm.py` 
+To construct the training data for the reference task, i.e., casual language modeling, you can run `construct_dataset_lm.py`. In the folder `dataset_demo`, we show the template of dataset in Wikipedia
+
+```json
+[
+  {
+  "prompt": "Vulcan Airport is located immediately west of Vulcan, Alberta, Canada. The airport served until 2015 as the xxxxxxxxxx",
+  "completion": "the"
+  },
+  ...
+]
+```
 
 ## Installation
 
@@ -22,5 +32,29 @@ The environment can be installed by running the following command at the root of
 conda env create -f environment.yml
 ```
 
-## Data
+## Train
 
+`train_lora.py` contains the code to fine-tune Llama by LoRA, and the fine-tuning setting is determined by the following code. Similar to the `train_ia3.py`. 
+
+```python
+peft_config = LoraConfig(
+    r=8,
+    lora_alpha=16,
+    target_modules = [
+        "q_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "k_proj",
+        "down_proj",
+        "up_proj"
+    ],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+)
+```
+
+## Test
+
+`test_combine_llama2.py` contains the code for merging models.
