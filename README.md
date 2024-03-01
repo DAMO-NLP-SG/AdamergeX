@@ -6,63 +6,21 @@ This repository contains code for the paper "[AdaMergeX: Cross-Lingual Transfer 
 
 
 
+### Abstract
+
+As an effective alternative to the direct finetuning on target tasks in specific languages, cross-lingual transfer addresses the challenges of limited training data by decoupling "task ability" and "language ability" by fine-tuning on the target task in the source language and another selected task in the target language, respectively. However, they fail to fully separate the task ability from the source language or the language ability from the chosen task. In this paper, we acknowledge the mutual reliance between task ability and language ability and direct our attention toward the gap between the target language and the source language on tasks. As the gap removes the impact of tasks, we assume that it remains consistent across tasks. Based on this assumption, we propose a new cross-lingual transfer method called AdaMergeX that utilizes adaptive adapter merging. By introducing a reference task, we can determine that the divergence of adapters fine-tuned on the reference task in both languages follows the same distribution as the divergence of adapters fine-tuned on the target task in both languages. Hence, we can obtain target adapters by combining the other three adapters. Furthermore, we propose a structureadaptive adapter merging method. Our empirical results demonstrate that our approach yields new and effective cross-lingual transfer, outperforming existing methods across all settings
+
+## Data
+
+To construct the training data for the reference task, i.e., casual language modeling, you can run `construct_dataset_lm.py` 
+
 ## Installation
 
-Our codebase comes from the paper [Universal and Transferable Adversarial Attacks on Aligned Language Models](https://arxiv.org/abs/2307.15043) [(github)](https://github.com/llm-attacks/llm-attacks). The package can be installed by running the following command at the root of this repository: 
+The environment can be installed by running the following command at the root of this repository:
 
 ```
-pip install -e .
+conda env create -f environment.yml
 ```
 
-## Parameters
-
-Beyond the parameters of the original GCG, probe sampling necessitates the specification of two additional key parameters: **probe set size** and **filtered set size**, referred to as `probe_set` and `filtered_set`, respectively. These can be configured within `./experiments/launch_scripts/` as follows.
-
-```sh
---config.probe_set=xx \
---config.filtered_set=xx
-```
-
-## Models
-
- 
-
-### Target Models
-
-Address of the target model is set in `experiments/configs/`, where `/DIR` is the address that you store the model.
-
-```sh
-  config.model_paths = [
-      "/DIR/Llama2-7b-chat",
-  ]
-  config.tokenizer_paths = [
-      "/DIR/Llama2-7b-chat",
-  ]
-```
-
-### Draft Model
-
-The address of the draft model is specified in `experiments/main.py`; replace `/DIR` with the directory path where the model is stored. Additionally, the GPU on which the model is placed is determined by the setting `params_small.devices`.
-
-```python
-params_small.model_paths = ["/DIR/GPT2"]
-params_small.tokenizer_paths = ["/DIR/GPT2"]
-params_small.devices = ['cuda:0']
-```
-
-## Experiments
-
-* To execute specific experiments involving harmful behaviors and strings, execute the code below within the `experiments` directory. Note that replacing `vicuna` with `llama2` and substituting `behaviors` with `strings` will transition to alternative experimental configurations:
-
-  ```sh
-  cd launch_scripts
-  bash run_gcg_individual.sh vicuna behaviors
-  ```
-
-- To perform multiple behaviors experiments, run the following code inside `experiments`:
-
-  ```sh
-  cd launch_scripts
-  bash run_gcg_multiple.sh vicuna
-  ```
+## Data
 

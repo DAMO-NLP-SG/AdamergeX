@@ -114,34 +114,11 @@ def train():
 
     model = get_peft_model(model, config)
     model.print_trainable_parameters()
-
-    # dataset = load_dataset("lucadiliello/english_wikipedia")["train"]
-    # dataset = load_dataset("Mursel/Turkish-wikipedia-100k")["train"]
-    # dataset = load_dataset("Plim/fr_wikipedia_processed")["train"]
-    # dataset = list(load_dataset("xnli", 'en')["train"])
-    # dataset = list(load_dataset("xquad", 'xquad.en')["validation"])
-    # dataset = load_dataset("blo05/cleaned_wiki_en_80-100")["train"]
-
-    # dataset = list(load_dataset("daqc/wikipedia-txt-spanish")["train"])
-
-    # dataset = list(load_dataset("amazon_reviews_multi", 'fr')["train"])
-    # dataset = random.sample(dataset, 30000)
-
-    # sorted_data = sorted(dataset, key=lambda x: x['stars'])
-    # grouped_data = {key: list(group) for key, group in groupby(sorted_data,key=lambda x: x['stars'] )}
-
-    # print(len((grouped_data[1])))
-    # print(len((grouped_data[2])))
-    # print(len((grouped_data[3])))
-    # print(len((grouped_data[4])))
-    # print(len((grouped_data[5])))
      
 
     dataset = load_dataset("blo05/cleaned_wiki_en_80-100")["train"]
 
-    # dataset = load_dataset("pkavumba/balanced-copa")["train"]
 
-    # dataset = list(load_dataset("yelp_polarity")["train"])
     print(dataset[0])
 
     dataset = Seq2SeqDataset(dataset)

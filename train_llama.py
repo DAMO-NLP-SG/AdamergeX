@@ -11,7 +11,7 @@ import random
 import pdb
 from datasets import Dataset
 
-output_dir="./Rebuttal/results/"
+output_dir="./Results/"
 model_name ="NousResearch/Llama-2-7b-hf"
 
 import argparse
@@ -23,25 +23,7 @@ parser.add_argument("--task", type=str, default="Wiki")
 args = parser.parse_args()
 print(args)
 
-
-
-# model_dir = '/disk3/yiran'
-
-# tokenizer = LlamaTokenizer.from_pretrained("NousResearch/Llama-2-7b-chat-hf", cache_dir=target_dir)
-# model = LlamaForCausalLM.from_pretrained("NousResearch/Llama-2-7b-chat-hf", device_map="auto", cache_dir=target_dir)
-
-
-# dataset = Dataset.from_dict(load_dataset("json", data_files="Russian_Wiki_50k_LM_511_1.json",split="train")[:25000])
-
-
-
-dataset = load_dataset("json", data_files=f"Rebuttal/{args.language}_{args.task}.json",split="train")
-
-# dataset = load_dataset("json", data_files="English_Xlni.json",split="train")
-
-# dataset = load_dataset("json", data_files="German_Wiki.json",split="train")
-
-
+dataset = load_dataset("json", data_files="German_Wiki.json",split="train")
 
 
 bnb_config = BitsAndBytesConfig(
@@ -49,11 +31,11 @@ bnb_config = BitsAndBytesConfig(
     bnb_4bit_quant_type="nf4",
     bnb_4bit_compute_dtype=torch.bfloat16,
 )
-base_model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16, quantization_config=bnb_config, device_map="auto")
-# base_model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16, device_map="auto", cache_dir=model_dir)
 
+base_model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16, device_map="auto")
 base_model.config.use_cache = False
 base_model = prepare_model_for_kbit_training(base_model)
+
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 tokenizer.pad_token = tokenizer.eos_token
@@ -66,30 +48,23 @@ peft_config = LoraConfig(
     target_modules = [
         "q_proj",
         "v_proj",
-        # "o_proj",
-        # "gate_proj",
-        # "k_proj",
-        # "down_proj",
-        # "up_proj"
+        "o_proj",
+        "gate_proj",
+        "k_proj",
+        "down_proj",
+        "up_proj"
     ],
     lora_dropout=0.05,
     bias="none",
     task_type="CAUSAL_LM",
 )
 
-# peft_config = LoraConfig(
-#     r=8,
-#     lora_alpha=16,
-#     lora_dropout=0.05,
-#     bias="none",
-#     task_type="CAUSAL_LM",
-# )
+
 
 base_model = get_peft_model(base_model, peft_config)
 
 print_trainable_parameters(base_model)
 
-# print(base_model)
 
 def formatting_prompts_func(example):
     output_texts = []

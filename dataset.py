@@ -6,18 +6,6 @@ import torch
 from tqdm import tqdm
 import pdb
 
-# PROMPT_DICT = {
-#     "prompt_input": (
-#         "Below is an instruction that describes a task, paired with an input that provides further context. "
-#         "Write a response that appropriately completes the request.\n\n"
-#         "### Instruction:\n{instruction}\n\n### Input:\n{input}\n\n### Response:"
-#     ),
-#     "prompt_no_input": (
-#         "Below is an instruction that describes a task. "
-#         "Write a response that appropriately completes the request.\n\n"
-#         "### Instruction:\n{instruction}\n\n### Response:"
-#     ),
-# }
 
 PROMPT_DICT = {
     "prompt_input": (
@@ -33,21 +21,6 @@ class Seq2SeqDataset(Dataset):
     def __init__(self, dataset):
         super(Seq2SeqDataset, self).__init__()
 
-        # list_data_dict = []
-        # for data_path in data_paths:
-        #     logging.warning(f"Loading data from {data_path}...")
-        #     with open(data_path, "r") as f:
-        #         list_data_dict.extend(json.load(f))
-
-        # prompt_input, prompt_no_input = PROMPT_DICT["prompt_input"], PROMPT_DICT["prompt_no_input"]
-
-        # logging.warning("Formatting data...")
-        # sources = [
-        #     prompt_input.format_map(example) if example.get("input", "") != "" else prompt_no_input.format_map(example)
-        #     for example in list_data_dict
-        # ]
-        # targets = [f"{example['output']}" if 'output' in example else f"{example['response']}" for example in list_data_dict]
-
         sources = []
         targets = []
         for data in tqdm(dataset):
@@ -60,8 +33,6 @@ class Seq2SeqDataset(Dataset):
         print(sources[0])
         print(targets[0])
 
-        # self.sources = sources
-        # self.targets = targets
         self.sources = sources[:10000]
         self.targets = targets[:10000]
 
@@ -101,7 +72,6 @@ class Seq2SeqCollator(object):
 
         inputs['labels'] = labels
 
-        # pdb.set_trace()
 
         return inputs
 

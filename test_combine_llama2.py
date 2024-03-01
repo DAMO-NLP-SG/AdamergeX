@@ -76,9 +76,9 @@ model1 = LlamaForCausalLM.from_pretrained("NousResearch/Llama-2-7b-hf", device_m
 model2 = LlamaForCausalLM.from_pretrained("NousResearch/Llama-2-7b-hf", device_map="auto")
 model3 = LlamaForCausalLM.from_pretrained("NousResearch/Llama-2-7b-hf", device_map="auto")
 
-model1 = PeftModel.from_pretrained(model1, '/home/masum/junteng/frank/multilingual-vicuna/results/english_gsm_llama2_lora/', adapter_name="English_GSM")
-model2 = PeftModel.from_pretrained(model2, '/home/masum/junteng/frank/multilingual-vicuna/results/swahili_wiki_llama2_lora/', adapter_name="Swahili_Wiki")
-model3 = PeftModel.from_pretrained(model3, '/home/masum/junteng/frank/multilingual-vicuna/results/final_checkpoint/', adapter_name="English_Wiki")
+model1 = PeftModel.from_pretrained(model1, './results/english_gsm_llama2_lora/', adapter_name="English_GSM")
+model2 = PeftModel.from_pretrained(model2, './results/swahili_wiki_llama2_lora/', adapter_name="Swahili_Wiki")
+model3 = PeftModel.from_pretrained(model3, './results/final_checkpoint/', adapter_name="English_Wiki")
 
 
 params_model1 = dict(model1.named_parameters())
@@ -88,25 +88,28 @@ params_model3 = dict(model3.named_parameters())
 
 for name, param in tqdm(params_model2.items()):
     # Get corresponding parameter in model2
-    # if "SelfAttention.k.ia3_l.French_Wiki_T5_IA3" in name or 'SelfAttention.v.ia3_l.French_Wiki_T5_IA3' in name:
     if "Swalihi_Wiki" in name:
         name = name.replace("Swalihi_Wiki", "English_Wiki")
         param_model3 = params_model3.get(name, None)
         
-        # Average the coefficients
+        # LoRA
         param.data =  (param.data - param_model3.data)
+        
+        # IA3
+        # param.data =  (param.data / param_model3.data)
 
 
 for name, param in tqdm(params_model1.items()):
     # Get corresponding parameter in model2
-    # if "SelfAttention.k.ia3_l.English_Amazon_T5_IA3" in name or "SelfAttention.v.ia3_l.English_Amazon_T5_IA3" in name:
     if "English_GSM" in name:
         name = name.replace("English_GSM", "Swahili_Wiki")
         param_model2 = params_model2.get(name, None)
-    
-        # Average the coefficients
-        # param.data = param.data * (lambda_hyper * (param_model2.data - 1) + 1)
+
+        # LoRA
         param.data = param.data  + lambda_hyper * param_model2.data
+
+        # IA3
+        # param.data = param.data * (lambda_hyper * (param_model2.data - 1) + 1)
 
 
 
@@ -124,34 +127,13 @@ def test():
     dataset = list(load_dataset("juletxara/mgsm", 'sw')["test"])
     dataset = random.sample(dataset, 100)
 
-    # sorted_data = sorted(dataset, key=lambda x: x['stars'])
-    # grouped_data = {key: list(group) for key, group in groupby(sorted_data,key=lambda x: x['stars'] )}
-
-    # print(len((grouped_data[1])))
-    # print(len((grouped_data[2])))
-    # print(len((grouped_data[3])))
-    # print(len((grouped_data[4])))
-    # print(len((grouped_data[5])))
-
     correct = 0
     all_index = 0
 
     for data in tqdm(dataset):
         all_index += 1
-        # task_instruction = """In this task, you are given a premise sentence, two possible options and a question word. If the question was cause you should select the option that is a possible cause of the premise sentence, and if the question word was effect you should find the option which is a possible effect of the premise sentence. Answer with \"A\" or \"B\"."""
-        # task_instruction = """In this task, you are given Yelp reviews. The task is to classify a review as \"1\" if the overall sentiment of the review is positive or as \"0\" if the overall sentiment of the review is negative. Answer by \'0\' or \'1\'"""
-        # task_instruction = """You are given a review about a place. You need to provide a rating from \"1\" to \"5\" for this place."""
-        # task_instruction = """In this task, you are given Yelp reviews. The task is to classify a review as \"1\" if the overall sentiment of the review is positive or as \"0\" if the overall sentiment of the review is negative. Answer by \'0\' or \'1\'"""
-        # task_instruction = """Vous recevez un avis sur un produit. Vous devez fournir une note de « 1 » à « 5 » pour ce produit."""
 
-        # prompt = task_instruction + "\n\nSaisir: " + data['review_body'] + '\nSortir: '
 
-        # task_instruction = """Se le da una reseña sobre un producto. Debe proporcionar una calificación de \"1\" a \"5\" para este producto."""
-
-        # prompt = task_instruction + "\n\nAporte: " + data['review_body'] + '\nProducción: '
-    
-        # task_instruction = """You are given a review about a product. You need to provide a rating from \"1\" to \"5\" for this product."""
-        
         task_instruction = """Let\'s think step by step."""
 
         prompt = task_instruction + "\n\nQuestion: " + data['question'] + '\nAnswer: '
@@ -166,10 +148,7 @@ def test():
             print(answer)
             answer = 0
 
-        # print(answer)
 
-        
-        # if data['sentiment'] == int(answer):
         if data['answer_number'] == int(answer):
             correct += 1
         
